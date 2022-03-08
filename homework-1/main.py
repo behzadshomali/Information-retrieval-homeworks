@@ -29,6 +29,7 @@ def chunks(df, n):
 df = load_data('final_books_without_null.xlsx')
 df['stop_word'] = ''
 df['lemmatizer'] = ''
+df['stemmer'] = ''
 
 since = time.time()
 
@@ -38,7 +39,7 @@ outputs = []
 for splitted_df in chunks(df, n):
     print(splitted_df.shape)
     output = []
-    thread = Thread(target=preprocess_pipeline, args=(splitted_df, output, True, True, True, True))
+    thread = Thread(target=preprocess_pipeline, args=(splitted_df, output, True, True, True, True, True))
     thread.start()
     threads.append(thread)
     outputs.append(output)
