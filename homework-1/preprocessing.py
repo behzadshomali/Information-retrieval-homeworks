@@ -21,6 +21,11 @@ def removeStopWords(text_tokens):
   tokens_without_sw = [word for word in text_tokens if not word in hzm.stopwords_list()]
   return tokens_without_sw
 
+def remove_punctuations(text_tokens):
+  punctuations_list = ['،', '.', ':', '؛', '؟', '!', 'ا', '\'', '\\', '/', '-', 'ـ', '+', '=', '*', ',', '', '٪', '$', '#', '@', '÷', '', '<', '>', '|', '}', '{', ']', ']', ')', '(', '\'']
+  tokens_without_punc = [word for word in text_tokens if word not in punctuations_list]
+  return tokens_without_punc
+
 def lemma(text_tokens):
   lemmatizer = hzm.Lemmatizer()
   temp = []
@@ -28,16 +33,32 @@ def lemma(text_tokens):
     temp.append(lemmatizer.lemmatize(word))
   return temp
 
-def process_normal_sw_lemma(data):
-  for index in data.index:
-    normalized = normalizer(data['content'][index])
-    text_tokens_normal = hzm.word_tokenize(normalized)
-    tokens_normal_without_sw = removeStopWords(text_tokens_normal)
-    data['stop_word'][index] = ' '.join(tokens_normal_without_sw)
+def preprocess_pipeline(
+  df,
+  normalize_flag=True,
+  remove_stop_words_flag=False,
+  remove_punctuations_flag=False,
+  lemmatize_flag=False,
+):
+  
+  for index in df.index:
+    text = df.loc[index, 'content']
+    if normalize_flag:
+      text = normalizer(df['content'][index])
 
-    lemmatized_tokens = lemma(tokens_normal_without_sw)
-    data['lemmatizer'][index] = ' '.join(lemmatized_tokens)
+    text_tokens = hzm.word_tokenize(text)
 
-  data.to_excel("data_norm_stopWord_lemm.xlsx")
+    if remove_punctuations_flag:
+      text_tokens = remove_punctuations(text_tokens)
 
+    if remove_stop_words_flag:  
+      text_tokens = removeStopWords(text_tokens)
+      df['stop_word'][index] = '/'.join(text_tokens)
 
+    if lemmatize_flag:
+      text_tokens = lemma(text_tokens)
+      df['lemmatizer'][index] = '/'.join(text_tokens)
+
+    print(f'Preprocessing {index}')
+    
+  df.to_excel("preprocessed_data.xlsx")
