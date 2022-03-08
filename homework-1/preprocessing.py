@@ -22,8 +22,28 @@ def removeStopWords(text_tokens):
   return tokens_without_sw
 
 def remove_punctuations(text_tokens):
-  punctuations_list = ['،', '.', ':', '؛', '؟', '!', 'ا', '\'', '\\', '/', '-', 'ـ', '+', '=', '*', ',', '', '٪', '$', '#', '@', '÷', '', '<', '>', '|', '}', '{', ']', ']', ')', '(', '\'']
-  tokens_without_punc = [word for word in text_tokens if word not in punctuations_list]
+  punctuations_list = ['،', '.', ':', '؛', '؟', '!', '\'', '\\', '/', '-', 'ـ', '+', '=', '*', ',', '٪', '$', '#', '@', '÷', '<', '>', '|', '}', '{', ']', ']', ')', '(', '\'', '…']
+  tokens_without_punc = []
+
+  for token in text_tokens:
+    '''
+      this if-statement is to remove
+      the tokens that are of punctuations
+    '''
+    if token not in punctuations_list:
+      '''
+        this for-loop is to replace the 
+        punctuations appearing in the middle
+        of tokens with a space so we can then
+        split the tokens by space and seperately
+        extract the words
+      '''
+      for delimiter in punctuations_list:
+        token = token.replace(delimiter, ' ')
+      
+      for word in token.split():
+        tokens_without_punc.append(word.strip())
+      
   return tokens_without_punc
 
 def lemma(text_tokens):
@@ -47,7 +67,7 @@ def preprocess_pipeline(
       text = normalizer(df['content'][index])
 
     text_tokens = hzm.word_tokenize(text)
-
+  
     if remove_punctuations_flag:
       text_tokens = remove_punctuations(text_tokens)
 
@@ -60,5 +80,5 @@ def preprocess_pipeline(
       df['lemmatizer'][index] = '/'.join(text_tokens)
 
     print(f'Preprocessing {index}')
-    
-  df.to_excel("preprocessed_data.xlsx")
+
+  # df.to_excel("preprocessed_data.xlsx")
