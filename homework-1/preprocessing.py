@@ -68,6 +68,7 @@ def preprocess_pipeline(
         remove_punctuations_flag=False,
         lemmatize_flag=False,
         stemmer_flag=False,
+        show_logs=False
 ):
     for index in df.index:
         text = df.loc[index, 'content']
@@ -91,17 +92,22 @@ def preprocess_pipeline(
             text_tokens = stemmer(text_tokens)
             df['stemmer'][index] = '/'.join(text_tokens)
 
-        print(f'Preprocessed {index}')
+        if show_logs:
+            print(f'Preprocessed {index}')
 
     output.append(df)
 
 
-def invert_indexing(df, col, output: dict):
+def invert_indexing(df, col, show_logs=False):
+    inverted_index = {}
     for index in df.index:
-        text_tokens = df.loc[index, col]
-        for token in set(text_tokens.split('/')):
-            output.setdefault(token, [])
-            output[token].append(index)
-
-        print(f'Inverted indexing {index}')
-    return output
+        try:
+            text_tokens = df.loc[index, col]
+            for token in set(text_tokens.split('/')):
+                inverted_index.setdefault(token, [])
+                inverted_index[token].append(index)
+            if show_logs:
+                print(f'Inverted indexing {index}')
+        except:
+            pass
+    return inverted_index
