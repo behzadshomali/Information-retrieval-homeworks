@@ -1,5 +1,5 @@
 import pandas as pd
-from preprocessing import preprocess_pipeline
+from preprocessing import preprocess_pipeline, invert_indexing
 from threading import Thread
 import time
 from math import ceil
@@ -26,20 +26,42 @@ def chunks(df, n):
         yield df.iloc[i:i + step_size]
 
 
-df = load_data('final_books_without_null.xlsx')
-df['stop_word'] = ''
-df['lemmatizer'] = ''
-df['stemmer'] = ''
+# df = load_data('final_books_without_null.xlsx')
+# df['stop_word'] = ''
+# df['lemmatizer'] = ''
+# df['stemmer'] = ''
 
-since = time.time()
+# since = time.time()
 
 n = 5 # number of threads
+# threads = []
+# outputs = []
+# for splitted_df in chunks(df, n):
+#     print(splitted_df.shape)
+#     output = []
+#     thread = Thread(target=preprocess_pipeline, args=(splitted_df, output, True, True, True, True, True))
+#     thread.start()
+#     threads.append(thread)
+#     outputs.append(output)
+
+# for thread in threads:
+#     thread.join()
+
+# end = time.time()
+# print(f'Time taken for performing preprocessing: {(end - since) / 60:.2f} minutes')
+
+# merged_output_df = pd.concat(output_df[0] for output_df in outputs)
+# merged_output_df.to_excel("preprocessed_data.xlsx")
+
+merged_output_df = pd.read_excel('preprocessed_data.xlsx')
+since = time.time()
+
 threads = []
 outputs = []
-for splitted_df in chunks(df, n):
+for splitted_df in chunks(merged_output_df, n):
     print(splitted_df.shape)
-    output = []
-    thread = Thread(target=preprocess_pipeline, args=(splitted_df, output, True, True, True, True, True))
+    output = {}
+    thread = Thread(target=invert_indexing, args=(splitted_df, 'stemmer', output))
     thread.start()
     threads.append(thread)
     outputs.append(output)
@@ -48,7 +70,7 @@ for thread in threads:
     thread.join()
 
 end = time.time()
-print(f'Time taken: {(end - since) / 60:.2f} minutes')
+print(f'Time taken for performing invert indexing: {(end - since) / 60:.2f} minutes')
 
-merged_output_df = pd.concat(output_df[0] for output_df in outputs)
-merged_output_df.to_excel("preprocessed_data.xlsx")
+merged_inverted_indexing_df = pd.concat(pd.DataFrame(output_df.items()) for output_df in outputs)
+merged_inverted_indexing_df.to_excel("inverted_indexing.xlsx")

@@ -94,3 +94,14 @@ def preprocess_pipeline(
         print(f'Preprocessed {index}')
 
     output.append(df)
+
+
+def invert_indexing(df, col, output: dict):
+    for index in df.index:
+        text_tokens = df.loc[index, col]
+        for token in set(text_tokens.split('/')):
+            output.setdefault(token, [])
+            output[token].append(index)
+
+        print(f'Inverted indexing {index}')
+    return output
