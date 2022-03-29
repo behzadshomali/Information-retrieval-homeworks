@@ -11,4 +11,5 @@ if __name__ == '__main__':
     docs_count = preprocessed_df.shape[0]
     print('Total number of docs:', docs_count)
 
-    idf = get_idf(inverted_indexing_df, docs_count, show_logs=True)
+    # idf = get_idf(inverted_indexing_df, docs_count, show_logs=True)
+    tf = get_tf(inverted_indexing_df, preprocessed_df, show_logs=True)
