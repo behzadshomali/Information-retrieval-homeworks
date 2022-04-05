@@ -60,7 +60,7 @@ def get_tf_query(query, inverted_indexing_df, preprocessed_df, show_logs=False):
     return tf, tf_sum
 
 
-def get_idf(inverted_indexing_df, docs_count, show_logs=False):
+def get_idf(idf, inverted_indexing_df, docs_count, show_logs=False):
     '''term --> df(doc frequency) --> idf'''
     idf = {}
     for i, term in enumerate(inverted_indexing_df.term):
@@ -79,8 +79,8 @@ def get_idf(inverted_indexing_df, docs_count, show_logs=False):
     return idf
 
 
-def get_tf(inverted_indexing_df, preprocessed_df, show_logs=False):
-    '''term --> doc --> tf'''
+def get_tf(tf, inverted_indexing_df, preprocessed_df, show_logs=False):
+    '''doc --> term --> tf'''
     tf = {}
     for i, term in enumerate(inverted_indexing_df.term):
         try:
@@ -88,8 +88,7 @@ def get_tf(inverted_indexing_df, preprocessed_df, show_logs=False):
             term_docs_ids = ast.literal_eval(term_docs_ids)
             for doc_id in term_docs_ids:
                 tf.setdefault(doc_id, {})
-                doc_preprocessed_content = preprocessed_df.loc[preprocessed_df.index == doc_id, 'lemmatizer'].to_list()[
-                    0]
+                doc_preprocessed_content = preprocessed_df.loc[preprocessed_df.index == doc_id, 'lemmatizer'].to_list()[0]
                 doc_preprocessed_terms = doc_preprocessed_content.split('/')
 
                 tf[doc_id][term] = 1 + math.log((doc_preprocessed_terms.count(term)), 10)
@@ -107,22 +106,12 @@ def get_tf(inverted_indexing_df, preprocessed_df, show_logs=False):
 
 
 def ranking(vector_query, vector_doc_tf_idf, k):
-    cosine_similarities = []
+    cosine_distances = []
 
-    for i in vector_doc_tf_idf:
-        count = 0
-        query_vec2 = vector_query.copy()
-        temp = []
-        for vec_doc in vector_doc_tf_idf[i]:
-            temp.append(vector_doc_tf_idf[i][vec_doc])
-            count = count + 1
-            if count > len(vector_query): query_vec2.append(0)
-        # cosine_similarities.append(np.dot(query_np, docs_np) / (np.linalg.norm(query_np) * np.linalg.norm(docs_np)))
-        z = spatial.distance.cosine(query_vec2, temp)
-        cosine_similarities.append(z)
+    for i in range(vector_doc_tf_idf.shape[0]):
+        z = spatial.distance.cosine(vector_doc_tf_idf[i], vector_query)
+        cosine_distances.append(z.item())
 
-        temp.clear()
-
-    cosine_np = 1-np.array(cosine_similarities)
-    top_matches_indices = np.argsort(cosine_np, axis=0)[::-1][:k]
-    return top_matches_indices, cosine_np[top_matches_indices]
+    cosine_similarities = 1-np.array(cosine_distances)
+    top_matches_indices = np.argsort(cosine_similarities, axis=0)[-k:]
+    return top_matches_indices, cosine_similarities[top_matches_indices]

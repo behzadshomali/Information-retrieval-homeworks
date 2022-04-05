@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from utils import *
 from scipy import spatial
+from threading import Thread
 
 
 if __name__ == '__main__':
@@ -15,33 +16,43 @@ if __name__ == '__main__':
     docs_count = preprocessed_df.shape[0]
     print('Total number of docs:', docs_count)
 
-    idf = get_idf(inverted_indexing_df, docs_count, show_logs=True)
-    tf = get_tf(inverted_indexing_df, preprocessed_df, show_logs=True)
+     # --- TF*IDF ---------
+    # IN HERE
+    # for DOCS
+    idf = {}
+    tf = {}
+    idf_thread = Thread(target=get_idf, args=(idf, inverted_indexing_df, docs_count, True))
+    tf_thread = Thread(target=get_tf, args=(tf, inverted_indexing_df, preprocessed_df, True))
+    idf_thread.start()
+    tf_thread.start()
+    idf_thread.join()
+    tf_thread.join()
+    # idf = get_idf(inverted_indexing_df, docs_count, show_logs=True)
+    # tf = get_tf(inverted_indexing_df, preprocessed_df, show_logs=True)
 
-    vector_doc_tf_idf = {}
-    for d_id in tf:
-        vector_doc_tf_idf.setdefault(d_id, {})
-        for word in tf[d_id]:
-            vector_doc_tf_idf[d_id][word] = (tf[d_id][word] * idf[word])
-
+    vector_doc_tf_idf = np.zeros((docs_count, len(inverted_indexing_df.term)))
+    for d, d_id in enumerate(preprocessed_df.index):
+        for w, word in enumerate(inverted_indexing_df.term):
+            vector_doc_tf_idf[d, w] = (tf.get(d_id, {}).get(word, 0) * idf.get(word, 0))
+            
 
     # --- TF*IDF ---------
     # IN HERE
-    # for QUERY and DOCs
+    # for QUERY
     query = getPreProccessedInput(input('Enter your query: '))
-    while query != '-1':
+    while True:
         idf_query = get_idf_query(query, inverted_indexing_df, docs_count, show_logs=True)
         tf_query, tf_sum = get_tf_query(query ,inverted_indexing_df, preprocessed_df, show_logs=True)
         
-        sum = 0
-        vector_query = []
-        for i in " ".join(query).split(" "):
-            temp = idf_query[f"{i}"] * tf_sum[f"{i}"]
-            sum = sum + temp
-            vector_query.append(temp)
+        vector_query = np.zeros((1, len(inverted_indexing_df.term)))
+        # for d, d_id in enumerate(preprocessed_df.index):
+        for w, word in enumerate(inverted_indexing_df.term):
+            if word in query:
+                vector_query[0, w] = (tf_sum.get(word, 0) * idf.get(word, 0))
+                print(word, ':', tf_sum.get(word, 0), idf.get(word, 0))
 
-        print('10 most relevant docs for the input query are as follows:', )
         matches_indices, matches_scores =  ranking(vector_query, vector_doc_tf_idf, 10)
+        print('10 most relevant docs for the input query are as follows:', )
         for i, match_index in enumerate(matches_indices):
             print(f"Doc_ID: {match_index}, score: {matches_scores[i]}/ {preprocessed_df.iloc[match_index]['title']}")
         
