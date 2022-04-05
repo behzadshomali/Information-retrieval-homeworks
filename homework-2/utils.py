@@ -123,6 +123,6 @@ def ranking(vector_query, vector_doc_tf_idf, k):
 
         temp.clear()
 
-    cosine_np = np.array(cosine_similarities)
+    cosine_np = 1-np.array(cosine_similarities)
     top_matches_indices = np.argsort(cosine_np, axis=0)[::-1][:k]
     return top_matches_indices, cosine_np[top_matches_indices]
