@@ -62,13 +62,13 @@ def get_tf_query(query, inverted_indexing_df, preprocessed_df, show_logs=False):
 
 def get_idf(idf, inverted_indexing_df, docs_count, show_logs=False):
     '''term --> df(doc frequency) --> idf'''
-    idf = {}
+    idf.append({})
     for i, term in enumerate(inverted_indexing_df.term):
         try:
             term_docs_ids = inverted_indexing_df.loc[inverted_indexing_df.term == term, 'docs_id'].to_list()[0]
             term_docs_ids = ast.literal_eval(term_docs_ids)
             doc_frequency = len(term_docs_ids)
-            idf[term] = math.log((docs_count / doc_frequency), 10)
+            idf[0][term] = math.log((docs_count / doc_frequency), 10)
         except Exception as e:
             print(e)
 
@@ -81,17 +81,17 @@ def get_idf(idf, inverted_indexing_df, docs_count, show_logs=False):
 
 def get_tf(tf, inverted_indexing_df, preprocessed_df, show_logs=False):
     '''doc --> term --> tf'''
-    tf = {}
+    tf.append({})
     for i, term in enumerate(inverted_indexing_df.term):
         try:
             term_docs_ids = inverted_indexing_df.loc[inverted_indexing_df.term == term, 'docs_id'].to_list()[0]
             term_docs_ids = ast.literal_eval(term_docs_ids)
             for doc_id in term_docs_ids:
-                tf.setdefault(doc_id, {})
+                tf[0].setdefault(doc_id, {})
                 doc_preprocessed_content = preprocessed_df.loc[preprocessed_df.index == doc_id, 'lemmatizer'].to_list()[0]
                 doc_preprocessed_terms = doc_preprocessed_content.split('/')
 
-                tf[doc_id][term] = 1 + math.log((doc_preprocessed_terms.count(term)), 10)
+                tf[0][doc_id][term] = 1 + math.log((doc_preprocessed_terms.count(term)), 10)
         except Exception as e:
             print(e)
 
@@ -112,6 +112,6 @@ def ranking(vector_query, vector_doc_tf_idf, k):
         z = spatial.distance.cosine(vector_doc_tf_idf[i], vector_query)
         cosine_distances.append(z.item())
 
-    cosine_similarities = 1-np.array(cosine_distances)
-    top_matches_indices = np.argsort(cosine_similarities, axis=0)[-k:]
-    return top_matches_indices, cosine_similarities[top_matches_indices]
+    cosine_distances = np.array(cosine_distances)
+    top_matches_indices = np.argsort(cosine_distances, axis=0)[:k]
+    return top_matches_indices, cosine_distances[top_matches_indices]
