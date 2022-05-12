@@ -17,8 +17,6 @@ dict_data = {
     "cover_loc": [],   
 }
 
-illegal_character = ["کتاب", "اثر", "صوتی", "-", "|", "اثر", "اثری از", "فیدیبو"]
-
 if __name__ == "__main__":
     mode = input("Mode [audio/text]: ").strip()
     count_page_start = int(input("Start page: "))
