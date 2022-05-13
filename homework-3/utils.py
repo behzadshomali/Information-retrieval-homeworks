@@ -33,38 +33,40 @@ def extract_main_title(illegal_character, l, soup, dict_data):
         soup = bs4.BeautifulSoup(request_result.text, "html.parser")
         name_book_h1 = soup.find("title")
 
-    name_book_h1 = (name_book_h1.text).strip()
-    if original[0].isnumeric():
-        original[0] = convert_numbers.english_to_persian(original[0])
-    
-    loc_1 = name_book_h1.find(original[0])
-    if loc_1 == -1:
-        if original[1].isnumeric():
-            original[1] = convert_numbers.english_to_persian(original[1])
-        loc_1 = name_book_h1.find(original[1])
+    try:
+        name_book_h1 = (name_book_h1.text).strip()
+        if original[0].isnumeric():
+            original[0] = convert_numbers.english_to_persian(original[0])
+        
+        loc_1 = name_book_h1.find(original[0])
+        if loc_1 == -1:
+            if original[1].isnumeric():
+                original[1] = convert_numbers.english_to_persian(original[1])
+            loc_1 = name_book_h1.find(original[1])
 
-    if original[len(original) - 1].isnumeric():
-        original[len(original) - 1] = convert_numbers.english_to_persian(original[len(original) - 1])
-    loc_2 = name_book_h1.find(original[len(original) - 1])
+        if original[len(original) - 1].isnumeric():
+            original[len(original) - 1] = convert_numbers.english_to_persian(original[len(original) - 1])
+        loc_2 = name_book_h1.find(original[len(original) - 1])
 
-    if loc_2 == -1:
-        loc_2 = name_book_h1.find(original[len(original) - 2]) + len(original[len(original) - 1]) + len(original[len(original) - 2]) + 2
-        name_book = name_book_h1[loc_1:loc_2]
-    else:
-        name_book = name_book_h1[loc_1:loc_2 + len(href_name_book[len(href_name_book) - 1])]
+        if loc_2 == -1:
+            loc_2 = name_book_h1.find(original[len(original) - 2]) + len(original[len(original) - 1]) + len(original[len(original) - 2]) + 2
+            name_book = name_book_h1[loc_1:loc_2]
+        else:
+            name_book = name_book_h1[loc_1:loc_2 + len(href_name_book[len(href_name_book) - 1])]
+        
+        if "کتاب" in name_book:
+            name_book = name_book.replace("کتاب", "")
+        if "صوتی" in name_book:
+            name_book = name_book.replace("صوتی", "")
     
-    if "کتاب" in name_book:
-        name_book = name_book.replace("کتاب", "")
-    if "صوتی" in name_book:
-        name_book = name_book.replace("صوتی", "")
-    
-    # if the book's name was not available
-    # we will search for it in the title tag
-    if name_book == "" or len(name_book) == 1:
-        name_book = soup.find("title").text.strip()
-        for ic in illegal_character:
-            if ic in name_book:
-                name_book = name_book.replace(ic, "")
+    except Exception as e:
+        # if the book's name was not available
+        # we will search for it in the title tag
+        if name_book == "" or len(name_book) == 1:
+            name_book = soup.find("title").text.strip()
+            for ic in illegal_character:
+                if ic in name_book:
+                    name_book = name_book.replace(ic, "")
     
     dict_data["name"].append(name_book)
 
