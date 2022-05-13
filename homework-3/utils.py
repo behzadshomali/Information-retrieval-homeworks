@@ -25,7 +25,7 @@ def extract_main_title(illegal_character, l, soup, dict_data):
     # we face "502 Bad Gateway" error so this if-statement
     # is used to wait for the server to respond again
     if name_book_h1.text == "502 Bad Gateway" or name_book_h1.text == "":
-        print("Error... waiting for 5 sec ...")
+        # print("Error... waiting for 5 sec ...")
         time.sleep(5)
         id = l['data-ut-object-id']
         link_books = f"https://fidibo.com/book/{id}"

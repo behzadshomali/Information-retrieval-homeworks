@@ -98,23 +98,26 @@ if __name__ == "__main__":
                 request_result=requests.get(link_books, headers=headers)
                 soup = bs4.BeautifulSoup(request_result.text, "html.parser")
                 
-                extract_main_title(illegal_character, l, soup, dict_data)
-                extract_author_translator_broadcaster(mode, soup, dict_data)
-                extract_price(soup, dict_data)
-                extract_publisher(soup, dict_data)
-                extract_publish_date(soup, dict_data)
-                extract_language(soup, dict_data)
-                extract_volume(soup, dict_data)
-                extract_description(soup, dict_data)
-                extract_cover_img_link(soup, dict_data)
-                extract_category(soup, dict_data)
+                try: 
+                    extract_main_title(illegal_character, l, soup, dict_data)
+                    extract_author_translator_broadcaster(mode, soup, dict_data)
+                    extract_price(soup, dict_data)
+                    extract_publisher(soup, dict_data)
+                    extract_publish_date(soup, dict_data)
+                    extract_language(soup, dict_data)
+                    extract_volume(soup, dict_data)
+                    extract_description(soup, dict_data)
+                    extract_cover_img_link(soup, dict_data)
+                    extract_category(soup, dict_data)
 
-                # these information are only
-                # available in text mode
-                if mode == 'text':
-                    extract_printed_price(soup, dict_data)
-                    extract_pages_count(soup, dict_data)
-                    extract_isbn(soup, dict_data)
+                    # these information are only
+                    # available in text mode
+                    if mode == 'text':
+                        extract_printed_price(soup, dict_data)
+                        extract_pages_count(soup, dict_data)
+                        extract_isbn(soup, dict_data)
+                except:
+                    pass
 
                 if len(dict_data["name"]) % 10 == 0:
                     print(f"{len(dict_data['name'])} books are already crawled!")
