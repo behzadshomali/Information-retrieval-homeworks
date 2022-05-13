@@ -60,7 +60,7 @@ def extract_main_title(illegal_character, l, soup, dict_data):
     
     # if the book's name was not available
     # we will search for it in the title tag
-    if name_book == "":
+    if name_book == "" or len(name_book) == 1:
         name_book = soup.find("title").text.strip()
         for ic in illegal_character:
             if ic in name_book:

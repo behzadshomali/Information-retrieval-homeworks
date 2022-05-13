@@ -74,7 +74,8 @@ if __name__ == "__main__":
                 "ترجمه", 
                 "اثر",
                 "نوشته", 
-                "نسخه"
+                "نسخه",
+                "(نسخه PDF)"
         ]
 
     for cp in range(count_page_start, count_page_end+1):
@@ -82,7 +83,7 @@ if __name__ == "__main__":
         if mode == 'text':
             link_nt = f"https://fidibo.com{tt['href']}?page={cp}&book_formats%5B%5D=text_book"
         elif mode == 'audio':
-            link_nt = f"https://fidibo.com{tt['href']}?page={count_page_end}&book_formats%5B%5D=audio_book"
+            link_nt = f"https://fidibo.com{tt['href']}?page={cp}&book_formats%5B%5D=audio_book"
         request_result=requests.get(link_nt)
         soup = bs4.BeautifulSoup(request_result.text, "html.parser")
         id_books = soup.find_all("a")
