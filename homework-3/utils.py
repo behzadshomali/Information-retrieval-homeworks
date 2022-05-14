@@ -8,7 +8,7 @@ import convert_numbers
 from random import randint
 
 
-def extract_main_title(illegal_character, l, soup, dict_data):
+def extract_main_title(illegal_character, l, soup):
     name_book = ""
     id = l['data-ut-object-id']
     href_name_book = l['href']
@@ -71,83 +71,77 @@ def extract_main_title(illegal_character, l, soup, dict_data):
 
     print(f"name of book: {name_book}")
     if name_book == "" or name_book is None or len(name_book) < 2:
-        return False
-        # name_book = soup.find("title").text
+        return {'status': False}
     else:
-        dict_data["name"].append(name_book)
-        return True
+        return {'status': True, 'name': name_book}
 
-    #     return False, name_book_h1
-    # else:
-    #     dict_data["name"].append(name_book)
-    #     return True, name_book_h1
 
-def extract_author_translator_broadcaster(mode, soup, dict_data):
+def extract_author_translator_broadcaster(mode, soup):
     '''
         "mode" determines whether we're working 
         with a text-book or audio-book
         mode: ['text', 'audio']
     '''
-    authors_ = soup.find_all("li", {"class": "author_title white"})
+    try:
+        authors_ = soup.find_all("li", {"class": "author_title white"})
 
-    if mode == "audio":
-        # if the book has author, 
-        # translator, and broadcaster
-        if len(authors_) == 3: 
-            for a in authors_:
-                if "نویسنده" in a.text:
-                    temp = (a.text).replace("نویسنده","")
-                    temp = (temp).replace(":","")
-                    temp = temp.strip()
-                    dict_data["authors"].append(temp)
-                if "مترجم" in a.text:
-                    temp = (a.text).replace("مترجم","")
-                    temp = (temp).replace(":","")
-                    temp = temp.strip()
-                    dict_data["translator"].append(temp)
-                if "گوینده" in a.text:
-                    temp = (a.text).replace("گوینده","")
-                    temp = (temp).replace(":","")
-                    temp = temp.strip()
-                    dict_data["broadcaster"].append(temp)
-        
-        # the book has author
-        # and broadcaster
-        elif len(authors_) == 2:
-            for a in authors_:
-                if "نویسنده" in a.text:
-                        temp = (a.text).replace("نویسنده","")
-                        temp = (temp).replace(":","")
-                        temp = temp.strip()
-                        dict_data["authors"].append(temp)
-                if "گوینده" in a.text:
-                        temp = (a.text).replace("گوینده","")
-                        temp = (temp).replace(":","")
-                        temp = temp.strip()
-                        dict_data["broadcaster"].append(temp)
-            dict_data["translator"].append("None")
+        if mode == "audio":
+            # if the book has author, 
+            # translator, and broadcaster
+            if len(authors_) == 3: 
+                for a in authors_:
+                    if "نویسنده" in a.text:
+                        author = (a.text).replace("نویسنده","")
+                        author = (author).replace(":","")
+                        author = author.strip()
+                    if "مترجم" in a.text:
+                        translator = (a.text).replace("مترجم","")
+                        translator = (translator).replace(":","")
+                        translator = translator.strip()
+                    if "گوینده" in a.text:
+                        broadcaster = (a.text).replace("گوینده","")
+                        broadcaster = (broadcaster).replace(":","")
+                        broadcaster = broadcaster.strip()
+            
+            # the book has author
+            # and broadcaster
+            elif len(authors_) == 2:
+                translator = 'None'
+                for a in authors_:
+                    if "نویسنده" in a.text:
+                            author = (a.text).replace("نویسنده","")
+                            author = (author).replace(":","")
+                            author = author.strip()
+                    if "گوینده" in a.text:
+                            broadcaster = (a.text).replace("گوینده","")
+                            broadcaster = (broadcaster).replace(":","")
+                            broadcaster = broadcaster.strip()
+                
+            return {'status': True, 'authors': author, 'translator': translator, 'broadcaster': broadcaster}
 
-    elif mode == "text":
-        if len(authors_) == 2:
-            for a in authors_:
-                if "نویسنده" in a.text:
-                    temp = (a.text).replace("نویسنده","")
-                    temp = (temp).replace(":","")
-                    temp = temp.strip()
-                    dict_data["authors"].append(temp)
-                if "مترجم" in a.text:
-                    temp = (a.text).replace("مترجم","")
-                    temp = (temp).replace(":","")
-                    temp = temp.strip()
-                    dict_data["translator"].append(temp)
+        elif mode == "text":
+            if len(authors_) == 2:
+                for a in authors_:
+                    if "نویسنده" in a.text:
+                        author = (a.text).replace("نویسنده","")
+                        author = (author).replace(":","")
+                        author = author.strip()
+                    if "مترجم" in a.text:
+                        translator = (a.text).replace("مترجم","")
+                        translator = (translator).replace(":","")
+                        translator = translator.strip()
 
-        elif len(authors_) == 1:
-                temp = (authors_[0].text).replace("نویسنده","")
-                temp = (temp).replace(":","")
-                dict_data["authors"].append(temp)
-                dict_data["translator"].append("None")
+            elif len(authors_) == 1:
+                translator = 'None'
+                author = (authors_[0].text).replace("نویسنده","")
+                author = (author).replace(":","")
+                author = author.strip()
 
-def extract_publisher(soup, dict_data):
+            return {'status': True, 'authors': author, 'translator': translator}
+    except Exception as e:
+        return {'status': False}
+
+def extract_publisher(soup):
     # extract the main name of the publisher
     # by finding and eliminating the additional
     # phrases such as "گروه", "انتشارات", "نشر"
@@ -161,84 +155,84 @@ def extract_publisher(soup, dict_data):
         if publisher.find("گروه") != -1:
             publisher = publisher.replace("گروه", "")
 
-        dict_data["publisher"].append(publisher)
+        return {'status': True, 'publisher': publisher}
     
     # this is the case when the publisher 
     # is not available
     except:
-        dict_data["publisher"].append("None")
+        return {'status': True, 'publisher': 'None'}
 
-def extract_printed_price(soup, dict_data):
+def extract_printed_price(soup):
     try:
         price_book_printed = soup.find("img", {"alt": "قیمت نسخه چاپی"})
-        dict_data["price_printed"].append(((price_book_printed.find_next_sibling("span").text).replace("قیمت نسخه چاپی", "")).replace("تومان", ""))
+        return {'status': True, 'price_printed': (price_book_printed.find_next_sibling("span").text).replace("قیمت نسخه چاپی", "").replace("تومان", "")}
     
     # this is a case that the
     # book's printed price is not available
     except:
-        dict_data["price_printed"].append("None")
+        return {'status': True, 'price_printed': 'None'}
 
-def extract_price(soup, dict_data):
+def extract_price(soup):
     try:
         book_price = soup.find("span", {"class": "book-price"})
-        dict_data["price"].append((book_price.text.replace("تومان", "")))
+        return {'status': True, 'price': (book_price.text.replace("تومان", ""))}
     
     # this is a case that the 
     # book's price is not available
     except:
-        dict_data["price"].append("None")
+        return {'status': True, 'price': 'None'}
 
-def extract_publish_date(soup, dict_data):
+def extract_publish_date(soup):
     try:
         date_book = soup.find("img", {"alt": "تاریخ نشر"})
-        dict_data["date"].append(date_book.find_next_sibling("span").text)
+        return {'status': True, 'date': date_book.find_next_sibling("span").text}
     
     # this is a case that the
     # book's publish date is not available
     except:
-        dict_data["date"].append("None")
+        return {'status': True, 'date': 'None'}
 
-def extract_language(soup, dict_data):
+def extract_language(soup):
     try:
         language_book = soup.find("img", {"alt": "زبان"})
-        dict_data["language"].append(language_book.parent.text)
+        return {'status':True, 'language': language_book.parent.text}
     
     # this is a case that the
     # book's language is not available
     except:
-        dict_data["language"].append("None")
+        return {'status': True, 'language': 'None'}
 
-def extract_volume(soup, dict_data):
+def extract_volume(soup):
     try:
         vol_book = soup.find("img", {"alt": "حجم فایل"})
-        dict_data["vol"].append((vol_book.parent.text).replace("مگابایت", ""))
+        return {'status': True, 'vol': (vol_book.parent.text).replace("مگابایت", "")}
     
     # this is a case that the
     # book's volume is not available
     except:
-        dict_data["vol"].append("None")
+        return {'status': True, 'vol': 'None'}
 
-def extract_pages_count(soup, dict_data):
+def extract_pages_count(soup):
     try:
         pages_book = soup.find("img", {"alt": "تعداد صفحات"})
-        dict_data["pages"].append((pages_book.parent.text).replace("صفحه", ""))
+        return {'status': True, 'pages': (pages_book.parent.text).replace("صفحه", "")}
     
     # this is a case that the
     # book's pages count is not available
     except:
-        dict_data["pages"].append("None")
+        return {'status': True, 'pages': 'None'}
 
-def extract_isbn(soup, dict_data):
+def extract_isbn(soup):
     try:
         isbn_book = soup.find("img", {"alt": "شابک"})
-        dict_data["isbn"].append(isbn_book.find_next_sibling("label").text)
+        return {'status':True, 'isbn': isbn_book.find_next_sibling("label").text}
     
     # this is a case that the
     # book's isbn is not available
     except:
-        dict_data["isbn"].append("None")
+        return {'status': True, 'isbn': 'None'}
 
-def extract_description(soup, dict_data):
+def extract_description(soup):
     try:
         # since website Fidibo didn't follow a
         # unique structure, the book's description
@@ -250,24 +244,24 @@ def extract_description(soup, dict_data):
                 description_book = soup.find("p", {"class": "more-info book-description"})
                 if description_book is None:
                     description_book = soup.find("p", {"style": "direction: rtl;"})
-        dict_data["description"].append(description_book.text)
+        return {'status': True, 'description': description_book.text}
     
     # this is a case that the
     # book's description is not available
     except:
-        dict_data["description"].append("None")
+        return {'status': True, 'description': 'None'}
 
-def extract_cover_img_link(soup, dict_data):
+def extract_cover_img_link(soup):
     try:
         image_source = soup.find("img", {"id": "book_img"})
-        dict_data["cover_loc"].append(image_source['src'])
+        return {'status': True, 'cover_loc': image_source['src']}
     
     # this is the case that the
     # book's cover image link is not available
     except:
-        dict_data["cover_loc"].append("None")
+        return {'status': True, 'cover_loc': 'None'}
 
-def extract_category(soup, dict_data):
+def extract_category(soup):
     # the book's category may exist under
     # different pathes such as:
     # Novel
@@ -278,17 +272,17 @@ def extract_category(soup, dict_data):
     dom = etree.HTML(str(soup))
     category_book = dom.xpath('/html/body/div[1]/nav/ul/li[4]/a/span')
     if len(category_book) != 0:
-        dict_data["category"].append(category_book[0].text)
+        return {'status': True, 'category': category_book[0].text}
     else:
         category_book = dom.xpath('/html/body/div[1]/nav/ul/li[3]/a/span')
         if len(category_book) != 0:
-            dict_data["category"].append(category_book[0].text)
+            return {'status': True, 'category': category_book[0].text}
         else:
             category_book = dom.xpath('/html/body/div[1]/nav/ul/li[2]/a/span')
             if len(category_book) != 0:
-                dict_data["category"].append(category_book[0].text)
+                return {'status': True, 'category': category_book[0].text}
             else:
-                dict_data["category"].append("None")
+                return {'status': True, 'category': 'None'}
 
 def save_crawled_data(mode, name_title, count_page_start, count_page_end, dict_data):
     '''

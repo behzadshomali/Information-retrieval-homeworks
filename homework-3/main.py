@@ -1,21 +1,8 @@
+from time import sleep
 import requests
 import bs4
 from utils import *
 
-dict_data = {
-    "name": [],
-    "authors": [],
-    "translator": [],
-    "broadcaster": [],
-    "price": [],
-    "publisher": [],
-    "date": [],
-    "language": [],
-    "vol": [],
-    "description": [],
-    "category": [],
-    "cover_loc": [],   
-}
 
 if __name__ == "__main__":
     mode = input("Mode [audio/text]: ").strip()
@@ -91,46 +78,77 @@ if __name__ == "__main__":
         for l in id_books:
             # check whether the tag has the 
             # "data-ut-object-id" attribute
-            if l.has_attr('data-ut-object-id'):
-                id = l['data-ut-object-id']            
-                link_books = f"https://fidibo.com/book/{id}"
-                headers={"X-Forwarded-For":random_IP_generator()}
-                request_result=requests.get(link_books, headers=headers)
-                soup = bs4.BeautifulSoup(request_result.text, "html.parser")
-                
-                try:
-                    # print(link_books)
-                    flag = extract_main_title(illegal_character, l, soup, dict_data)
-                    if not flag:
-                        print("name error1")
-                        time.sleep(3)
-                        flag = extract_main_title(illegal_character, l, soup, dict_data)
-                    if not flag:
-                        print("name error2")
-                        time.sleep(3)
-                        flag = extract_main_title(illegal_character, l, soup, dict_data)
-                    if not flag:
-                        continue
-                    extract_author_translator_broadcaster(mode, soup, dict_data)
-                    extract_price(soup, dict_data)
-                    extract_publisher(soup, dict_data)
-                    extract_publish_date(soup, dict_data)
-                    extract_language(soup, dict_data)
-                    extract_volume(soup, dict_data)
-                    extract_description(soup, dict_data)
-                    extract_cover_img_link(soup, dict_data)
-                    extract_category(soup, dict_data)
+            try:
+                if l.has_attr('data-ut-object-id'):
+                    id = l['data-ut-object-id']            
+                    link_books = f"https://fidibo.com/book/{id}"
+                    headers={"X-Forwarded-For":random_IP_generator()}
+                    request_result=requests.get(link_books, headers=headers)
+                    soup = bs4.BeautifulSoup(request_result.text, "html.parser")
+                    
+                    results = []
+
+                    name_result = extract_main_title(illegal_character, l, soup)
+                    results.append(name_result)
+
+                    authors_result =  extract_author_translator_broadcaster(mode, soup)
+                    results.append(authors_result)
+
+                    price_result = extract_price(soup)
+                    results.append(price_result)
+
+                    publisher_result = extract_publisher(soup)
+                    results.append(publisher_result)
+
+                    date_result = extract_publish_date(soup)
+                    results.append(date_result)
+
+                    language_result = extract_language(soup)
+                    results.append(language_result)
+
+                    vol_result = extract_volume(soup)
+                    results.append(vol_result)
+
+                    description_result = extract_description(soup)
+                    results.append(description_result)
+
+                    cover_loc_result = extract_cover_img_link(soup)
+                    results.append(cover_loc_result)
+
+                    category_result = extract_category(soup)
+                    results.append(category_result)
 
                     # these information are only
                     # available in text mode
                     if mode == 'text':
-                        extract_printed_price(soup, dict_data)
-                        extract_pages_count(soup, dict_data)
-                        extract_isbn(soup, dict_data)
-                except:
-                    pass
+                        price_printed_result = extract_printed_price(soup)
+                        results.append(price_printed_result)
 
-                if len(dict_data["name"]) % 10 == 0:
-                    print(f"{len(dict_data['name'])} books are already crawled!")
+                        pages_result = extract_pages_count(soup)
+                        results.append(pages_result)
+
+                        isbn_result = extract_isbn(soup)
+                        results.append(isbn_result)
+
+                    is_everyhing_ok = True
+                    for result in results: 
+                        if result['status'] == False:
+                            is_everyhing_ok = False
+                            break
+                    
+                    if is_everyhing_ok:
+                        for key in dict_data.keys():
+                            for result in results:
+                                if key in result.keys():
+                                    dict_data[key].append(result[key])
+                                    break
+
+                    if len(dict_data["name"]) % 10 == 0:
+                        print(f"{len(dict_data['name'])} books are already crawled!")
+            except Exception as e:
+                print(e)
+                sleep(5)
     
+    for k, v in dict_data.items():
+        print(f"{k}: {len(v)}")
     save_crawled_data(mode, name_title, count_page_start, count_page_end, dict_data)
