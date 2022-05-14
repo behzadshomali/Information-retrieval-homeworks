@@ -98,8 +98,19 @@ if __name__ == "__main__":
                 request_result=requests.get(link_books, headers=headers)
                 soup = bs4.BeautifulSoup(request_result.text, "html.parser")
                 
-                try: 
-                    extract_main_title(illegal_character, l, soup, dict_data)
+                try:
+                    # print(link_books)
+                    flag = extract_main_title(illegal_character, l, soup, dict_data)
+                    if not flag:
+                        print("name error1")
+                        time.sleep(3)
+                        flag = extract_main_title(illegal_character, l, soup, dict_data)
+                    if not flag:
+                        print("name error2")
+                        time.sleep(3)
+                        flag = extract_main_title(illegal_character, l, soup, dict_data)
+                    if not flag:
+                        continue
                     extract_author_translator_broadcaster(mode, soup, dict_data)
                     extract_price(soup, dict_data)
                     extract_publisher(soup, dict_data)

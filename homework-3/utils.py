@@ -9,6 +9,7 @@ from random import randint
 
 
 def extract_main_title(illegal_character, l, soup, dict_data):
+    name_book = ""
     id = l['data-ut-object-id']
     href_name_book = l['href']
     href_name_book = href_name_book.split("-")
@@ -58,17 +59,28 @@ def extract_main_title(illegal_character, l, soup, dict_data):
             name_book = name_book.replace("کتاب", "")
         if "صوتی" in name_book:
             name_book = name_book.replace("صوتی", "")
-    
+
     except Exception as e:
         # if the book's name was not available
         # we will search for it in the title tag
-        if name_book == "" or len(name_book) == 1:
+        if name_book == "" or len(name_book) < 2 or name_book is None:
             name_book = soup.find("title").text.strip()
             for ic in illegal_character:
                 if ic in name_book:
                     name_book = name_book.replace(ic, "")
-    
-    dict_data["name"].append(name_book)
+
+    print(f"name of book: {name_book}")
+    if name_book == "" or name_book is None or len(name_book) < 2:
+        return False
+        # name_book = soup.find("title").text
+    else:
+        dict_data["name"].append(name_book)
+        return True
+
+    #     return False, name_book_h1
+    # else:
+    #     dict_data["name"].append(name_book)
+    #     return True, name_book_h1
 
 def extract_author_translator_broadcaster(mode, soup, dict_data):
     '''
