@@ -64,7 +64,8 @@ if __name__ == "__main__":
                 "نسخه",
                 "(نسخه PDF)"
         ]
-
+    
+    links_set = set()
     for cp in range(count_page_start, count_page_end+1):
         print(f"Page: {cp}")
         if mode == 'text':
@@ -82,6 +83,11 @@ if __name__ == "__main__":
                 if l.has_attr('data-ut-object-id'):
                     id = l['data-ut-object-id']            
                     link_books = f"https://fidibo.com/book/{id}"
+                    if link_books in links_set:
+                        print(f"{link_books} is already in the set!")
+                        continue
+
+                    links_set.add(link_books)
                     headers={"X-Forwarded-For":random_IP_generator()}
                     request_result=requests.get(link_books, headers=headers)
                     soup = bs4.BeautifulSoup(request_result.text, "html.parser")
@@ -145,6 +151,11 @@ if __name__ == "__main__":
 
                     if len(dict_data["name"]) % 10 == 0:
                         print(f"{len(dict_data['name'])} books are already crawled!")
+
+                    if len(dict_data["name"]) % 150 == 0:
+                        print("Sleeping...")
+                        sleep(60)
+                        
             except Exception as e:
                 print(e)
                 sleep(5)
