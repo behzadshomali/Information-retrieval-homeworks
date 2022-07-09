@@ -2,101 +2,67 @@ import pandas as pd
 from preprocessing import preprocess_pipeline, invert_indexing
 from threading import Thread
 import time
-from math import ceil
-from pprint import pprint
+from utils import *
 
-def load_data(path):
-    df = pd.read_excel(path)
+if __name__ == "__main__":
+    parser = init_parser()
+    args = parser.parse_args()
 
-    selected_cols = ['title', 'content']
-    df_selected = df[selected_cols]
-    df_selected['index'] = df_selected.index
+    if args.raw_data_path is not None:
+        df = load_data(args.raw_data_path)
+        df["preprocessed"] = ""
 
-    return df_selected
+    if args.preprocessed_data_path is not None:
+        preprocessed_df = pd.read_excel(args.preprocessed_data_path)
+    else:
+        since = time.time()
+        threads = []
+        outputs = []
+        for splitted_df in chunks(df, args.threads):
+            if args.verbose:
+                print(f"The shape of the splitted DataFrame is {splitted_df.shape}")
 
-def remove_null(data):
+            output = []
+            thread = Thread(
+                target=preprocess_pipeline,
+                args=(
+                    splitted_df,
+                    output,
+                    args.normalize,
+                    args.remove_stop_words,
+                    args.remove_punctuations,
+                    args.lemmatize,
+                    args.stemmer,
+                    args.verbose,
+                ),
+            )
 
-    df = data.dropna(axis=0, subset=['content'])
-    df.to_excel('final_books_without_null.xlsx')
+            thread.start()
+            threads.append(thread)
+            outputs.append(output)
 
-    return df
+        for thread in threads:
+            thread.join()
 
-def chunks(df, n):
-    step_size = int(ceil(df.shape[0] / n))
-    for i in range(0, df.shape[0], step_size):
-        yield df.iloc[i:i + step_size]
-
-def retrieve_documents(preprocessed_df, inverted_index, query):
-    docs_titles = []
-    docs_index =  inverted_index.get(query, [])
-    for doc_index in docs_index:
-        docs_titles.append(preprocessed_df.loc[doc_index, 'title'])
-
-    return docs_titles
-
-def get_query(preprocessed_df, method, inverted_index):
-    query = input('Enter your query: ').strip()
-    while query != '':
-        output = []
-        query_df = pd.DataFrame(
-            {
-                'content': [query],
-                'stop_word': [''],
-                'lemmatizer': [''],
-                'stemmer': [''],
-            }
+        end = time.time()
+        print(
+            f"Time taken for performing preprocessing: {(end - since) / 60:.2f} minutes!"
         )
 
-        preprocess_pipeline(query_df, output, True, True, True, True, True)
-        processed_query = output[0][method][0]
-        print(f'Processed query: {processed_query}')
+        preprocessed_df = pd.concat(output_df[0] for output_df in outputs)
+        preprocessed_df.to_excel("preprocessed_data.xlsx")
 
-        docs_titles = retrieve_documents(preprocessed_df, inverted_index, query)
-        pprint(docs_titles)
-        print(f'Retrieved {len(docs_titles)} documents')
+    if args.indexed_data_path is not None:
+        inverted_index = pd.read_excel(args.indexed_data_path)
+    else:
+        since = time.time()
+        inverted_index = invert_indexing(preprocessed_df, args.verbose)
+        end = time.time()
+        print(f"Time taken for performing invert indexing: {(end - since):.3f} seconds")
 
-        query = input('\nEnter your query: ').strip()
+        inverted_indexing_df = pd.DataFrame(
+            inverted_index.items(), columns=["term", "docs_id"]
+        )
+        inverted_indexing_df.to_excel("inverted_indexing.xlsx")
 
-
-# df = load_data('final_books_without_null.xlsx')
-# df['stop_word'] = ''
-# df['lemmatizer'] = ''
-# df['stemmer'] = ''
-
-# since = time.time()
-
-n = 5 # number of threads
-# threads = []
-# outputs = []
-# for splitted_df in chunks(df, n):
-#     print(splitted_df.shape)
-#     output = []
-#     thread = Thread(target=preprocess_pipeline, args=(splitted_df, output, True, True, True, True, True))
-#     thread.start()
-#     threads.append(thread)
-#     outputs.append(output)
-
-# for thread in threads:
-#     thread.join()
-
-# end = time.time()
-# print(f'Time taken for performing preprocessing: {(end - since) / 60:.2f} minutes')
-
-# preprocessed_df = pd.concat(output_df[0] for output_df in outputs)
-# preprocessed_df.to_excel("preprocessed_data.xlsx")
-
-preprocessed_df = pd.read_excel('preprocessed_data.xlsx')
-since = time.time()
-
-method = 'lemmatizer'
-inverted_index = invert_indexing(preprocessed_df, method)
-
-end = time.time()
-print(f'Time taken for performing invert indexing: {(end - since):.3f} seconds')
-
-inverted_indexing_df = pd.DataFrame(inverted_index.items(), columns=['term', 'docs_id'])
-inverted_indexing_df.to_excel("inverted_indexing.xlsx")
-
-
-
-get_query(preprocessed_df, method, inverted_index)
+    get_query(preprocessed_df, inverted_index, args)
