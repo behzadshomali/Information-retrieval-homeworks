@@ -1,50 +1,101 @@
 import hazm as hzm
 
 
-def stemmer(data):
+def stemmer(tokens):
     stemmer = hzm.Stemmer()
     stem_list = []
-    for i in data:
-        stem_list.append(stemmer.stem(i))
+    for token in tokens:
+        stem_list.append(stemmer.stem(token))
     return stem_list
 
 
-def normalizer(data):
-    '''
-  data would be a single
-  row of dataframe
-  '''
+def lemma(tokens):
+    lemmatizer = hzm.Lemmatizer()
+    lemm_list = []
+    for word in tokens:
+        lemm_list.append(lemmatizer.lemmatize(word))
+
+    return lemm_list
+
+
+def normalizer(text):
     normalizer = hzm.Normalizer()
-    return normalizer.normalize(data)
+    return normalizer.normalize(text)
 
 
-def removeStopWords(text_tokens):
-    tokens_without_sw = [word for word in text_tokens if not word in hzm.stopwords_list()]
+def removeStopWords(tokens):
+    tokens_without_sw = [token for token in tokens if not token in hzm.stopwords_list()]
     return tokens_without_sw
 
 
-def remove_punctuations(text_tokens):
-    punctuations_list = ['،', '.', ':', '؛', '؟', '!', '\'', '\\', '/', '-', 'ـ', '+', '=', '*', ',', '٪', '$', '#',
-                         '@', '÷', '<', '>', '|', '}', '{', '[', ']', ')', '(', '…']
-    delimiters_list = ['،', '.', ':', '؛', '؟', '!', '\'', '\\', '/', '-', 'ـ', ',', '|', '}', '{', '[', ']', ')', '(',
-                       '…']
-    tokens_without_punc = []
+def remove_punctuations(tokens):
+    punctuations_list = [
+        "،",
+        ".",
+        ":",
+        "؛",
+        "؟",
+        "!",
+        "'",
+        "\\",
+        "/",
+        "-",
+        "ـ",
+        "+",
+        "=",
+        "*",
+        ",",
+        "٪",
+        "$",
+        "#",
+        "@",
+        "÷",
+        "<",
+        ">",
+        "|",
+        "}",
+        "{",
+        "[",
+        "]",
+        ")",
+        "(",
+        "…",
+    ]
+    delimiters_list = [
+        "،",
+        ".",
+        ":",
+        "؛",
+        "؟",
+        "!",
+        "'",
+        "\\",
+        "/",
+        "-",
+        "ـ",
+        ",",
+        "|",
+        "}",
+        "{",
+        "[",
+        "]",
+        ")",
+        "(",
+        "…",
+    ]
 
-    for token in text_tokens:
-        '''
-      this if-statement is to remove
-      the tokens that are of punctuations
-    '''
+    tokens_without_punc = []
+    for token in tokens:
         if token not in punctuations_list:
-            '''
-        this for-loop is to replace the 
-        punctuations appearing in the middle
-        of tokens with a space so we can then
-        split the tokens by space and seperately
-        extract the words
-      '''
+            """
+            the following for-loop is to replace 
+            the punctuations appearing in the middle
+            of tokens with a space so we can later
+            split the tokens by space and separately
+            extract the words
+            """
             for delimiter in delimiters_list:
-                token = token.replace(delimiter, ' ')
+                token = token.replace(delimiter, " ")
 
             for word in token.split():
                 tokens_without_punc.append(word.strip())
@@ -52,62 +103,30 @@ def remove_punctuations(text_tokens):
     return tokens_without_punc
 
 
-def lemma(text_tokens):
-    lemmatizer = hzm.Lemmatizer()
-    temp = []
-    for word in text_tokens:
-        temp.append(lemmatizer.lemmatize(word))
-    return temp
-
-
 def preprocess_pipeline(
-        df,
-        output,
-        normalize_flag=True,
-        remove_stop_words_flag=False,
-        remove_punctuations_flag=False,
-        lemmatize_flag=False,
-        stemmer_flag=False,
-        show_logs=False
+    query,
+    normalize_flag=True,
+    remove_stop_words_flag=True,
+    remove_punctuations_flag=True,
+    lemmatize_flag=True,
+    stemmer_flag=True,
 ):
-    for index in df.index:
-        text = df.loc[index, 'content']
-        if normalize_flag:
-            text = normalizer(df['content'][index])
 
-        text_tokens = hzm.word_tokenize(text)
+    if normalize_flag:
+        text = normalizer(query)
 
-        if remove_punctuations_flag:
-            text_tokens = remove_punctuations(text_tokens)
+    query_tokens = hzm.word_tokenize(text)
 
-        if remove_stop_words_flag:
-            text_tokens = removeStopWords(text_tokens)
-            df['stop_word'][index] = '/'.join(text_tokens)
+    if remove_punctuations_flag:
+        query_tokens = remove_punctuations(query_tokens)
 
-        if lemmatize_flag:
-            text_tokens = lemma(text_tokens)
-            df['lemmatizer'][[index]] = '/'.join(text_tokens)
+    if remove_stop_words_flag:
+        query_tokens = removeStopWords(query_tokens)
 
-        if stemmer_flag:
-            text_tokens = stemmer(text_tokens)
-            df['stemmer'][index] = '/'.join(text_tokens)
+    if lemmatize_flag:
+        query_tokens = lemma(query_tokens)
 
-        if show_logs:
-            print(f'Preprocessed {index}')
+    if stemmer_flag:
+        query_tokens = stemmer(query_tokens)
 
-    output.append(df)
-
-
-def invert_indexing(df, col, show_logs=False):
-    inverted_index = {}
-    for index in df.index:
-        try:
-            text_tokens = df.loc[index, col]
-            for token in set(text_tokens.split('/')):
-                inverted_index.setdefault(token, [])
-                inverted_index[token].append(index)
-            if show_logs:
-                print(f'Inverted indexing {index}')
-        except:
-            pass
-    return inverted_index
+    return query_tokens
