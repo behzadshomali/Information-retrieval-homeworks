@@ -35,41 +35,37 @@ def init_parser():
 
     parser.add_argument(
         "--normalize",
-        default=True,
-        type=bool,
         help="specify whether to normalize the text",
+        action="store_true",
     )
 
     parser.add_argument(
         "--remove-stop-words",
-        default=True,
-        type=bool,
         help="specify whether to remove stop words",
+        action="store_true",
     )
 
     parser.add_argument(
         "--remove-punctuations",
-        default=True,
-        type=bool,
         help="specify whether to remove punctuations",
+        action="store_true",
     )
 
     parser.add_argument(
         "--lemmatize",
-        default=True,
-        type=bool,
         help="specify whether to lemmatize the text",
+        action="store_true",
     )
 
     parser.add_argument(
-        "--stemmer", default=True, type=bool, help="specify whether to stem the text",
+        "--stemmer", help="specify whether to stem the text", action="store_true",
     )
 
     parser.add_argument(
+        "-v",
         "--verbose",
-        default=False,
-        type=bool,
         help="specify whether to print the workflow progress",
+        action="store_true",
     )
     return parser
 
