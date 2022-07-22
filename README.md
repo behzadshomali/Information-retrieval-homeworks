@@ -1,11 +1,12 @@
 # Information Retrieval (IR) Homework
 
 In this repository, the result of our teamwork (Hojjat Rezaei, 
-Navid All Gharaee, Amirali Vojdanifard, and I) are gathered in the form of different folders which are as follows:
+Navid All Gharaee, Amirali Vojdanifard, and I) for the Information Retrieval Course homework are gathered in the form of the following phases/directories:
 
-* Text preprocessing & indexing
-* Data crawling
-* Elastic search
+* [Text preprocessing & indexing](#text-preprocessing--indexing)
+* [Cosine distance & Query expansion](#cosine-distance--query-expansion)
+* [Data crawling](#data-crawling)
+* [Elastic search](#elastic-search)
 
 ## Text preprocessing & indexing:
 In this phase, we were supposed to work with a dataset containing information of 2824 provided in <a href="https://github.com/mohamad-dehghani/persian-pdf-books-dataset">here</a>. In this regard, first, we preprocessed and tokenized the content of each book. As the next step, we performed invert-indexing on the extracted tokens. 
@@ -17,10 +18,10 @@ In this step, we performed various text preprocessing techniques such that users
 
        main.py [-h] [--raw-data-path RAW_DATA_PATH]
                [--preprocessed-data-path PREPROCESSED_DATA_PATH]
-               [--indexed-data-path INDEXED_DATA_PATH] [--threads THREADS]
-               [--normalize NORMALIZE] [--remove-stop-words REMOVE_STOP_WORDS]
-               [--remove-punctuations REMOVE_PUNCTUATIONS] [--lemmatize LEMMATIZE]
-               [--stemmer STEMMER] [--verbose VERBOSE]
+               [--indexed-data-path INDEXED_DATA_PATH]
+               [--threads THREADS] [--normalize]
+               [--remove-stop-words] [--remove-punctuations]
+               [--lemmatize] [--stemmer] [-v]
 
 The used text preprocessing techniques are as follows:
 * normalize
@@ -31,6 +32,24 @@ The used text preprocessing techniques are as follows:
 
 ### Invert indexing:
 By having preprocessed tokens in hand, the invert-indexing step was so straightforward. We only had to create a dictionary such that its keys were tokens and its values were the index(ID) of each document containing that token.
+
+
+## Cosine distance & Query expansion:
+In this phase, we use the extracted tokens from [last phase](#text-preprocessing--indexing) to compute the cosine similarity between different documents. 
+
+To do that, first we have to compute TF-IDF (<u>T</u>erm <u>F</u>requency <u>I</u>nverse <u>D</u>ocument <u>F</u>requency). To save computational resources and make it easier to compute TF-IDF, we implemented separate methods for computing TF-IDF for terms that appeared in documents and also appeared in input queries.
+
+Since it is crucial to perform the same preprocessing methods that are used for indexing documents to preprocess the input query, just like in the previous phase the user can/should specify the preprocessing methods to use by flags. The complete list of flags is as follows:
+
+
+       main.py [-h] [-v] [-k K]
+               [-i INVERTED_INDEXING_DATAFRAME_PATH]
+               [-p PREPROCESSED_DATAFRAME_PATH] [--normalize]
+               [--remove-stop-words] [--remove-punctuations]
+               [--lemmatize] [--stemmer]
+
+The output of this phase is `k` documents with the least cosine distance from the input query as well as their distance. Furthermore, the output will be saved in the format `JSON` file.
+
 
 ## Data crawling:
 In this project, we were supposed to crawl data from the website *https://fidibo.com/* - a Persian website containing the information of a ton of text/audio books. There were various categories that our program had to crawl each one separately. The categories are as follows:
