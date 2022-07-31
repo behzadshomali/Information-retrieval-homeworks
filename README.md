@@ -115,3 +115,16 @@ Finally, we transfer our data to Elasticsearch and view our data with the help o
        src="./figures/elasticsearch.png"
        width="85%">
 </p>
+
+## Collaborative Filtering:
+User Based:
+1. Calculate similarity between selected user and all users.
+   - Smoothing ratings: 
+     - **$\overline{r_{i}}=\Sigma_{p}r_{ip}$**
+     - **$r^\prime_{ip}=r_{ip} - \overline{r}_{i}$**  
+   - Similarity:
+     - **$Sim(a,b)=\frac{\Sigma_{p} r^\prime_{ap} * r^\prime_{bp}} {\sqrt{r_{ap}^{2}} * \sqrt{r_{bp}^{2}}}$**
+2. Calculate ratings to movies that user have not seen them.
+   - $$r_{up}=\frac{\Sigma_{i \in users}sim(u,i)* r_{ip} }{\Sigma_{i \in users}|sim(u,i)|} + \overline{r}_{u}$$
+3. Normalization and get Top 10 ratings.
+   - $$newValue =(\frac{value - minData}{maxData - minData}) * (newMaxData - newMinData) + newMinData$$
