@@ -31,3 +31,54 @@ def preprocess_data(path1, path2):
     movies['movie_id'] = pd.to_numeric(movies['movie_id'])
 
     return ratings, movies
+
+def genres(data):
+    """
+    convert numbet to a true genre
+    :param data: movies
+    :return: movies dataset with a extra column that has the generes in string
+    """
+    genres = []
+
+    for genre in data:
+        if genre == 0:
+            genres.append("Action")
+        elif genre == 1:
+            genres.append("Adventure")
+        elif genre == 2:
+            genres.append("Animation")
+        elif genre == 3:
+            genres.append("Children")
+        elif genre == 4:
+            genres.append("Comedy")
+        elif genre == 5:
+            genres.append("Crime")
+        elif genre == 6:
+            genres.append("Documentary")
+        elif genre == 7:
+            genres.append("Drama")
+        elif genre == 8:
+            genres.append("Fantasy")
+        elif genre == 9:
+            genres.append("Film-Noir")
+        elif genre == 10:
+            genres.append("Horror")
+        elif genre == 11:
+            genres.append("Musical")
+        elif genre == 12:
+            genres.append("Mystery")
+        elif genre == 13:
+            genres.append("Romance")
+        elif genre == 14:
+            genres.append("Sci-Fi")
+        elif genre == 15:
+            genres.append("Thriller")
+        elif genre == 16:
+            genres.append("War")
+        elif genre == 17:
+            genres.append("Western")
+
+    return np.asarray(genres)
+
+
+
