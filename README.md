@@ -7,6 +7,7 @@ Navid All Gharaee, Amirali Vojdanifard, and I) for the Information Retrieval Cou
 * [Cosine distance & Query expansion](#cosine-distance--query-expansion)
 * [Data crawling](#data-crawling)
 * [Elastic search](#elastic-search)
+* [Collaborative Filtering](#collaborative-filtering)
 
 ## Text preprocessing & indexing:
 In this phase, we were supposed to work with a dataset containing information of 2824 provided in <a href="https://github.com/mohamad-dehghani/persian-pdf-books-dataset">here</a>. In this regard, first, we preprocessed and tokenized the content of each book. As the next step, we performed invert-indexing on the extracted tokens. 
@@ -128,3 +129,10 @@ User Based:
    - $$r_{up}=\frac{\Sigma_{i \in users}sim(u,i)* r_{ip} }{\Sigma_{i \in users}|sim(u,i)|} + \overline{r}_{u}$$
 3. Normalization and get Top 10 ratings.
    - $$newValue =(\frac{value - minData}{maxData - minData}) * (newMaxData - newMinData) + newMinData$$
+ 
+
+Item Based:
+1. Calculate similarity between all movies.
+   - **$Sim(\overrightarrow{A}, \overrightarrow{B}) = \frac{\overrightarrow{A} . \overrightarrow{B}}{\parallel\overrightarrow{A}\parallel * \parallel\overrightarrow{B}\parallel} $**
+2. Calculate ratings to movies that user have not seen them.
+   - **$rating(U, I_{j}) = \frac{\Sigma_{k} rating(U, I_{k}) * Sim_{jk}}{\Sigma_{k}Sim_{jk}}$**
