@@ -1,6 +1,7 @@
 from recommendation_system.preprocess import preprocess_data
 from recommendation_system.user_based import user_based_recommender
 from recommendation_system.item_based import item_based_recommend, item_based, get_user_not_rating, top10
+from recommendation_system.content_based import content_based
 from threading import Thread
 
 
@@ -33,3 +34,6 @@ for t in threads:
 top10_movies = top10(result, user_movie, movies)
 print(top10_movies)
 
+# Content based recommendation
+result = content_based(movies, ratings, 10)
+print(result)
